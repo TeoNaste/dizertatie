@@ -9,30 +9,41 @@ class DataPreprocessor:
     def __init__(self):
         self.__stop_words = set(stopwords.words('english'))
         self.__lemmatizer = WordNetLemmatizer()
-        self.__replace = [
-            (r'[^\w\s\d+\.\d+%]', ''),  # remove punctuation, but keep percentage
-            (' +', ' '),  # remove duplicate spaces
-            (r'\((.*)\)', r'\g<1>')  # remove parenthesis
-        ]
 
-    def lower_case(self, text):
+    def preprocess_sample(self,sample):
+        sample = self.__lower_case(sample)
+        sample = self.__tokenize(sample)
+        sample = self.__remove_stop_words(sample)
+        sample = self.__lemmatize(sample)
+
+        return sample
+
+    def preprocess_tag(self,tag):
+        tag = self.__lower_case(tag)
+        if tag == 'true':
+            return 1
+        else:
+            return 0
+
+    def __lower_case(self, text):
         return text.lower()
 
-    def remove_stop_words(self, text):
+    def __remove_stop_words(self, text):
         """Assumes text has been tokenized."""
         return [w for w in text if w not in self.__stop_words]
 
-    def tokenize(self, text):
-        for old, new in self.__replace:
-             text = re.sub(old, new, text)
+    def __tokenize(self, text):
+        """Assumes text is lowercase."""
+        matches = re.findall('(\d+.\d%)|(\w+)', text) # ignore punctuation unless they are part of a percentage
+        tokenized = []
+        for pair in matches:
+            if pair[0] != '':
+                tokenized.append(pair[0])
+            else:
+                tokenized.append(pair[1])
 
-        return text.split()
+        return tokenized
 
-    def lemmatize(self, text):
+    def __lemmatize(self, text):
+        """Assumes text has been tokenized."""
         return [self.__lemmatizer.lemmatize(w) for w in text]
-
-dp = DataPreprocessor()
-text = "These masks have / negative: (impacts) on 68.8% of. the? children in 2002."
-# text = dp.tokenize(text)
-# text = dp.remove_stop_words(text)
-print(re.sub(r'[^\w\s\d+\.\d%]', '',text))
