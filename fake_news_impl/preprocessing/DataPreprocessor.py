@@ -25,6 +25,9 @@ class DataPreprocessor:
         else:
             return 0
 
+    def vectorize_text(self,text):
+        return text
+
     def __lower_case(self, text):
         return text.lower()
 
@@ -47,3 +50,4 @@ class DataPreprocessor:
     def __lemmatize(self, text):
         """Assumes text has been tokenized."""
         return [self.__lemmatizer.lemmatize(w) for w in text]
+
