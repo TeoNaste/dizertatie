@@ -11,32 +11,53 @@ class DataPreprocessor:
         self.__lemmatizer = WordNetLemmatizer()
 
     def preprocess_sample(self,sample):
+        """
+        Processes on sample (claim) at a time
+        :param sample: one claim of the dataset
+        :return: processed sample as string
+        """
         sample = self.__lower_case(sample)
-        sample = self.__tokenize(sample)
+        sample = self.tokenize(sample)
         sample = self.__remove_stop_words(sample)
         sample = self.__lemmatize(sample)
 
-        return sample
+        processed_string = ' '
+        return processed_string.join(sample)
 
-    def preprocess_tag(self,tag):
+    def preprocess_tag(self,tag:str):
+        """
+        Formats tags from strings to int for easier processing
+        :param tag: the tag given as a string from the dataset
+        :return: 1, if tag is True; otherwise 0
+        """
         tag = self.__lower_case(tag)
         if tag == 'true':
             return 1
         else:
             return 0
 
-    def vectorize_text(self,text):
-        return text
-
-    def __lower_case(self, text):
+    def __lower_case(self, text:str):
+        """
+        Formats text to lowercase
+        :param text: text from dataset
+        :return: text all letters in lowercase
+        """
         return text.lower()
 
     def __remove_stop_words(self, text):
-        """Assumes text has been tokenized."""
+        """
+        Removes stop words. Assumes text has been tokenized
+        :param text: tokenized text, array of tokens
+        :return: array of tokens without stopwords
+        """
         return [w for w in text if w not in self.__stop_words]
 
-    def __tokenize(self, text):
-        """Assumes text is lowercase."""
+    def tokenize(self, text:str):
+        """
+        Tokenizes a string
+        :param text: string from the dataset
+        :return: array of tokens
+        """
         matches = re.findall('(\d+.\d%)|(\w+)', text) # ignore punctuation unless they are part of a percentage
         tokenized = []
         for pair in matches:
@@ -48,6 +69,10 @@ class DataPreprocessor:
         return tokenized
 
     def __lemmatize(self, text):
-        """Assumes text has been tokenized."""
+        """
+        Uses the NLTK lemmatizer to lemmatize a text
+        :param text: array of tokens, excluding stop words
+        :return: array of lemmas
+        """
         return [self.__lemmatizer.lemmatize(w) for w in text]
 

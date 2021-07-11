@@ -7,6 +7,27 @@ NO_OF_HIDDEN_NEURONS = 2
 
 class ModelMultilayerPerceptron:
 
+    def create_model(self, max_features: int, embedding_size: int, maxlen: int, embedding_matrix, activation: str, loss: str):
+        """
+        Creates a model for a Multilayer perceptron
+        :param max_features: number of features
+        :param embedding_size:
+        :param maxlen:
+        :param embedding_matrix:
+        :param activation: name of activation function
+        :param loss: name of the loss function
+        :return: netural network
+        """
+        net = []
+
+        hiddenLayer = [Neuron([random() for i in range(max_features + 1)]) for h in range(NO_OF_HIDDEN_NEURONS)]
+        net.append(hiddenLayer)
+
+        outputLayer = [Neuron([random() for i in range(NO_OF_HIDDEN_NEURONS + 1)])]
+        net.append(outputLayer)
+
+        return net
+
     def sigmoid(self,x):
         return 1.0 / (1.0 + np.exp(-x))
 
@@ -109,7 +130,6 @@ class ModelMultilayerPerceptron:
 
 
 class Neuron:
-
     def __init__(self, w = [], out = None, delta = 0.0):
          self.weights = w
          self.output = out
