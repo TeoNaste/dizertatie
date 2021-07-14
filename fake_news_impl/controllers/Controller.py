@@ -22,7 +22,7 @@ class Controller:
 
         self.data_loader.save_dataset(dataset,labels,filename_processed,False)
 
-    def train_on_model(self,model_name:str, preprocessed_filename:str,batch_size:int,epochs:int,n:int):
+    def train_on_model(self,model_name:str, preprocessed_filename:str,batch_size:int,epochs:int,n:int,activation:str,loss:str):
         #load preprocessed data
         dataset, labels = self.data_loader.load_dataset(preprocessed_filename)
         vocab = self.compute_most_frequent_words_vocabulary(dataset,n)
@@ -35,7 +35,7 @@ class Controller:
         X_test = self.text_to_bag_of_words(vocab,X_test)
 
         if model_name == 'mlp':
-            model = ModelMultilayerPerceptronV2(model_name).create_model(n,'activation','loss')
+            model = ModelMultilayerPerceptronV2(model_name).create_model(n,activation,loss)
             trainer = ModelTrainer(batch_size,epochs, X_train, y_train, X_test, y_test,model)
             trainer.train()
 

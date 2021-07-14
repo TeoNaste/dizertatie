@@ -2,8 +2,27 @@ class Utils:
 
     def __init__(self):
         self.__models = {
-            'mlp': 'Multilayer Perceptron'
+            '-- Choose a model to train --': 'none',
+            'Multilayer Perceptron':'mlp'
         }
+        self.__activations = [
+            'relu'
+        ]
+        self.__loss = [
+            'sqrt'
+        ]
 
     def get_available_models(self):
-        return self.__models
+        return list(self.__models.keys())
+
+    def is_valid_model(self,model_display:str):
+        return self.__models.get(model_display) != 'none'
+
+    def get_model_name(self,model_display:str):
+        return self.__models.get(model_display)
+
+    def get_activations(self):
+        return self.__activations
+
+    def get_loss_list(self):
+        return  self.__loss

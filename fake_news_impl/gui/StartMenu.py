@@ -2,6 +2,7 @@ import tkinter as tk
 
 from controllers.Controller import Controller
 from gui.TrainingPage import TrainingPage
+from utils.Utils import Utils
 
 
 class StarMenu:
