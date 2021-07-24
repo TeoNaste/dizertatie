@@ -29,10 +29,11 @@ class ModelTrainer:
         Trains the keras model on the training dataset, then evaluates the model on the testing dataset
         """
         #Train the keras model
-        self.model.fit(self.dataset,self.labels, epochs=self.epochs, batch_size=self.batch_size)
+        history = self.model.fit(self.dataset,self.labels, epochs=self.epochs, batch_size=self.batch_size, validation_data=(self.dataset_test,self.labels_test))
 
         #Evaluate the keras model
-        history = self.model.evaluate(self.dataset_test,self.labels_test)
+        results = self.model.evaluate(self.dataset_test,self.labels_test)
+        print("test loss, test acc: ", results)
 
         self.__plot_performance(history)
         #TODO: save results

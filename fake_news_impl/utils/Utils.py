@@ -6,10 +6,11 @@ class Utils:
             'Multilayer Perceptron':'mlp'
         }
         self.__activations = [
-            'relu'
+            'relu',
+            'sigmoid'
         ]
         self.__loss = [
-            'sqrt'
+            'binary_crossentropy'
         ]
 
     def get_available_models(self):

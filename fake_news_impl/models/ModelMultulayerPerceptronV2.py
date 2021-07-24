@@ -31,7 +31,7 @@ class ModelMultilayerPerceptronV2:
         #Output layer
         #Uses sigmoid because it is easier to map for the true / false labels
         #Applied l2 regularization
-        model.add(Dense(1,activation='sigmoid',activity_regularizer=regularizers.l2(1e-5)))
+        model.add(Dense(1,activation=activation,activity_regularizer=regularizers.l2(1e-5)))
 
         #Compile model
         adam = Adam(learning_rate=0.01)

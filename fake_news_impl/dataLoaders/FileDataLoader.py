@@ -41,7 +41,7 @@ class FileDataLoader:
         """
         dataset = []
         labels = []
-        with open(self.folder_path+filename, 'r', encoding="utf8") as file:
+        with open(self.folder_path+filename, 'r') as file:
             reader = csv.reader(file)
             for i, row in enumerate(reader):
                 if i == 0:

@@ -38,7 +38,7 @@ class TrainingPage(tk.Toplevel):
         error_message_lbl.grid(column=2, row=1, sticky=tk.EW)
 
         file_entry = tk.Entry(top_frame,width=50)
-        file_entry.insert(tk.END,'csvpoynter.csv')
+        file_entry.insert(tk.END,'processed_data.csv')
         file_entry.grid(column=0, row=1, sticky=tk.EW, padx=5)
 
         process_btn = tk.Button(top_frame,text="Preprocess")
@@ -71,21 +71,21 @@ class TrainingPage(tk.Toplevel):
         batch_label.grid(column=0,row=2,sticky=tk.W)
 
         batch_entry = tk.Entry(middle_left_frame)
-        batch_entry.insert(tk.END, '50')
+        batch_entry.insert(tk.END, '500')
         batch_entry.grid(column=1, row=2, sticky=tk.EW, padx=5)
 
         epochs_label = tk.Label(middle_left_frame, text="Epochs no: ")
         epochs_label.grid(column=0, row=3, sticky=tk.W)
 
         epochs_entry = tk.Entry(middle_left_frame)
-        epochs_entry.insert(tk.END, '50')
+        epochs_entry.insert(tk.END, '90')
         epochs_entry.grid(column=1, row=3, sticky=tk.EW, padx=5)
 
         features_label = tk.Label(middle_left_frame, text="Features no: ")
         features_label.grid(column=0, row=4, sticky=tk.W)
 
         features_entry = tk.Entry(middle_left_frame)
-        features_entry.insert(tk.END, '50')
+        features_entry.insert(tk.END, '1000')
         features_entry.grid(column=1, row=4, sticky=tk.EW, padx=5)
 
         layers_label = tk.Label(middle_left_frame, text="Layers no: ")
