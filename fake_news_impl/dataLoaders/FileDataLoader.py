@@ -3,11 +3,13 @@ import numpy as np
 
 from preprocessing.DataPreprocessor import DataPreprocessor
 
+KNOWLEDGE_BASE_PATH = 'knowledge_base.csv'
+
 
 class FileDataLoader:
 
-    def __init__(self, dataPreprocesor : DataPreprocessor):
-        self.processor = dataPreprocesor
+    def __init__(self, dataPreprocessor : DataPreprocessor):
+        self.processor = dataPreprocessor
         self.folder_path = 'datasets/'
 
     def load_and_process_dataset(self,filename:str):
@@ -31,7 +33,7 @@ class FileDataLoader:
                 dataset.append([id,text,explanation])
                 labels.append(tag)
 
-        return np.array(dataset),np.array(labels)
+        return self.shuffle_and_save_data(KNOWLEDGE_BASE_PATH,0.2,dataset,labels)
 
     def load_dataset(self,filename:str):
         """
@@ -56,7 +58,7 @@ class FileDataLoader:
 
         return np.array(dataset), np.array(labels)
 
-    def save_dataset(self,dataset,labels,filename:str, append:bool):
+    def save_dataset(self,dataset,labels,filename:str, append:bool = False):
         """
         Save a dataset to a file
         :param dataset: data as numpy array
@@ -73,6 +75,18 @@ class FileDataLoader:
             for i,row in enumerate(dataset):
                 writer.writerow([row[0],row[1],row[2],labels[i]])
 
+    def shuffle_and_save_data(self,filename:str,N:float,dataset,labels):
+        """
+        Shuffles data rows and saves a percentage to a given file
+        :param filename: name of the save file
+        :param N: percetange to save (0-1)
+        """
+        dataset,labels = self.__shuffle_in_unison(dataset,labels)
+        slice_index = int(len(dataset) * N)
+        self.save_dataset(dataset[:slice_index],labels[:slice_index],filename)
+
+        return np.array(dataset[slice_index+1:]),np.array(labels[slice_index+1:])
+
     def save_array(self,array,filename:str):
         """
         Saves an array structure to a file
@@ -82,3 +96,11 @@ class FileDataLoader:
 
         with open(self.folder_path+filename,'w',newline='') as file:
             file.writelines(array)
+
+    def __shuffle_in_unison(self,claims,labels):
+        rng_state = np.random.get_state()
+        np.random.shuffle(claims)
+        np.random.set_state(rng_state)
+        np.random.shuffle(labels)
+
+        return claims,labels

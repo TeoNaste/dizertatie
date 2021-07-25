@@ -85,7 +85,7 @@ class TrainingPage(tk.Toplevel):
         features_label.grid(column=0, row=4, sticky=tk.W)
 
         features_entry = tk.Entry(middle_left_frame)
-        features_entry.insert(tk.END, '1000')
+        features_entry.insert(tk.END, '500')
         features_entry.grid(column=1, row=4, sticky=tk.EW, padx=5)
 
         layers_label = tk.Label(middle_left_frame, text="Layers no: ")
@@ -148,7 +148,8 @@ class TrainingPage(tk.Toplevel):
         if self.utils.is_valid_model(model_name):
             message_label.config(fg='green')
             message_label.config(text='Training started')
-            self.controller.train_on_model(self.utils.get_model_name(model_name),filename,batch_size,epochs,feature_no,activation,loss)
+            self.controller.train_on_model(self.utils.get_model_name(model_name), filename, batch_size, epochs,
+                                           feature_no, activation, loss)
         else:
             message_label.config(text='Please choose a model')
 

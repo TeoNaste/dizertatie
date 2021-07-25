@@ -3,7 +3,8 @@ class Utils:
     def __init__(self):
         self.__models = {
             '-- Choose a model to train --': 'none',
-            'Multilayer Perceptron':'mlp'
+            'Multilayer Perceptron':'mlp',
+            'MLP with similarity': 'mlps'
         }
         self.__activations = [
             'relu',

@@ -2,7 +2,6 @@ from controllers.Controller import Controller
 from dataLoaders.FileDataLoader import FileDataLoader
 from gui.StartMenu import StarMenu
 from preprocessing.DataPreprocessor import DataPreprocessor
-from utils.Utils import Utils
 
 
 def run():
