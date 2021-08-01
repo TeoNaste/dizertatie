@@ -26,7 +26,7 @@ class Controller:
 
         self.data_loader.save_dataset(dataset,labels,filename_processed,False)
 
-    def train_on_model(self,model_name:str, preprocessed_filename:str,batch_size:int,epochs:int,n:int,activation:str,loss:str):
+    def train_on_model(self,model_name:str, preprocessed_filename:str,batch_size:int,epochs:int,n:int,layers:int,activation:str,loss:str):
         #load preprocessed data
         dataset, labels = self.data_loader.load_dataset(preprocessed_filename)
         self.vocab = self.compute_most_frequent_words_vocabulary(dataset,n)
@@ -39,7 +39,7 @@ class Controller:
             X_train = self.text_to_bag_of_words(self.vocab, X_train)
             X_test = self.text_to_bag_of_words(self.vocab, X_test)
 
-            model = ModelMultilayerPerceptronV2(model_name).create_model(n,activation,loss)
+            model = ModelMultilayerPerceptronV2(model_name).create_model(n,activation,loss,layers)
             trainer = ModelTrainer(batch_size,epochs, X_train, y_train, X_test, y_test,model)
             trainer.train()
 
@@ -50,7 +50,7 @@ class Controller:
             # split into 80/20%
             X_train, X_test, y_train, y_test = self.split_data(similarity_dataset, labels)
 
-            model = ModelMultilayerPerceptronV2(model_name).create_model(len(X_train[0]), activation, loss)
+            model = ModelMultilayerPerceptronV2(model_name).create_model(len(X_train[0]), activation, loss,layers)
             trainer = ModelTrainer(batch_size, epochs, X_train, y_train, X_test, y_test, model)
             trainer.train()
 

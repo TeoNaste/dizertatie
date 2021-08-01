@@ -11,7 +11,9 @@ class Utils:
             'sigmoid'
         ]
         self.__loss = [
-            'binary_crossentropy'
+            'binary_crossentropy',
+            'hinge',
+            'mean_squared_error'
         ]
 
     def get_available_models(self):

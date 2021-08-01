@@ -123,6 +123,7 @@ class TrainingPage(tk.Toplevel):
             int(batch_entry.get()),
             int(epochs_entry.get()),
             int(features_entry.get()),
+            int(layers_entry.get()),
             activation_option.get(),
             loss_option.get(),
             message_label))
@@ -144,12 +145,12 @@ class TrainingPage(tk.Toplevel):
         else:
             label.config(text="No file chosen!")
 
-    def __call_train(self,model_name:str,filename:str,batch_size:int,epochs:int,feature_no:int,activation:str,loss:str,message_label):
+    def __call_train(self,model_name:str,filename:str,batch_size:int,epochs:int,feature_no:int,layers:int,activation:str,loss:str,message_label):
         if self.utils.is_valid_model(model_name):
             message_label.config(fg='green')
             message_label.config(text='Training started')
             self.controller.train_on_model(self.utils.get_model_name(model_name), filename, batch_size, epochs,
-                                           feature_no, activation, loss)
+                                           feature_no,layers, activation, loss)
         else:
             message_label.config(text='Please choose a model')
 

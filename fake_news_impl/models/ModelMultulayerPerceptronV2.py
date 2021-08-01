@@ -9,7 +9,7 @@ class ModelMultilayerPerceptronV2:
     def __init__(self, model_name:str):
         self.name = model_name
 
-    def create_model(self, nr_features: int, activation: str, loss: str):
+    def create_model(self, nr_features: int, activation: str, loss: str, layers: int):
         """
         Creats a model for a multi-layer perceptron neural network
         :param nr_features: number of features for the one input
@@ -19,15 +19,12 @@ class ModelMultilayerPerceptronV2:
         """
         model = Sequential()
 
-        #Define the first hidden layer
-        #The input_dim argument creates the input layer with the right shape
-        model.add(Dense(100,input_dim=nr_features, activation=activation))
-        # Add dropout layer to reduce overfitting
-        model.add(Dropout(0.2))
-        #Second hidden layer
-        model.add(Dense(100,activation=activation))
-        # Add dropout layer to reduce overfitting
-        model.add(Dropout(0.2))
+        # Add hidden layers
+        for layer in range(layers):
+            # The input_dim argument creates the input layer with the right shape
+            model.add(Dense(100, input_dim=nr_features, activation=activation))
+            # Add dropout layer to reduce overfitting
+            model.add(Dropout(0.2))
         #Output layer
         #Uses sigmoid because it is easier to map for the true / false labels
         #Applied l2 regularization
