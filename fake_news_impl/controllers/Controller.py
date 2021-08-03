@@ -1,13 +1,17 @@
 import numpy as np
-
+from gensim.scripts.glove2word2vec import glove2word2vec
+from gensim.models import KeyedVectors
 from dataLoaders.FileDataLoader import FileDataLoader
 from sklearn.model_selection import train_test_split
 
+from models.ModelLstm import ModelLSTM
 from models.ModelMultulayerPerceptronV2 import ModelMultilayerPerceptronV2
 from models.ModelSimilarity import ModelSimilarity
 from trainers.ModelTrainer import ModelTrainer
 
 PREPROCESSED_PATH = 'processed_data.csv'
+GLOVE_INPUT_PATH = '../../glove/glove.42B.300d.txt'
+GLOVE_OUTPUT_PATH = '../../glove/glove.42B.300d.txt.word2vec'
 
 
 class Controller:
@@ -26,10 +30,10 @@ class Controller:
 
         self.data_loader.save_dataset(dataset,labels,filename_processed,False)
 
-    def train_on_model(self,model_name:str, preprocessed_filename:str,batch_size:int,epochs:int,n:int,layers:int,activation:str,loss:str):
+    def train_on_model(self,model_name:str, preprocessed_filename:str,batch_size:int,epochs:int,vocab_size:int,layers:int,learning_rate:float,neurons:int,activation:str,loss:str):
         #load preprocessed data
         dataset, labels = self.data_loader.load_dataset(preprocessed_filename)
-        self.vocab = self.compute_most_frequent_words_vocabulary(dataset,n)
+        self.vocab = self.compute_most_frequent_words_vocabulary(dataset,vocab_size)
 
         #split into 80/20%
         X_train, X_test, y_train, y_test = self.split_data(dataset,labels)
@@ -39,7 +43,7 @@ class Controller:
             X_train = self.text_to_bag_of_words(self.vocab, X_train)
             X_test = self.text_to_bag_of_words(self.vocab, X_test)
 
-            model = ModelMultilayerPerceptronV2(model_name).create_model(n,activation,loss,layers)
+            model = ModelMultilayerPerceptronV2(model_name).create_model(X_train.shape[1],activation,loss,layers,learning_rate,neurons)
             trainer = ModelTrainer(batch_size,epochs, X_train, y_train, X_test, y_test,model)
             trainer.train()
 
@@ -50,11 +54,24 @@ class Controller:
             # split into 80/20%
             X_train, X_test, y_train, y_test = self.split_data(similarity_dataset, labels)
 
-            model = ModelMultilayerPerceptronV2(model_name).create_model(len(X_train[0]), activation, loss,layers)
+            model = ModelMultilayerPerceptronV2(model_name).create_model(X_train.shape[1], activation, loss,layers,learning_rate,neurons)
             trainer = ModelTrainer(batch_size, epochs, X_train, y_train, X_test, y_test, model)
             trainer.train()
 
-    def compute_most_frequent_words_vocabulary(self, dataset ,n:int):
+        if model_name == 'lstm':
+            # vectorize
+            X_train = self.text_to_bag_of_words(self.vocab, X_train)
+            X_test = self.text_to_bag_of_words(self.vocab, X_test)
+
+            #reshape as 3d
+            X_train = X_train.reshape((X_train.shape[0],X_train.shape[1],1))
+            X_test = X_test.reshape((X_test.shape[0],X_test.shape[1],1))
+
+            model = ModelLSTM(model_name).create_model(batch_size,X_train.shape[1],X_train.shape[2],activation,loss,layers,learning_rate,neurons)
+            trainer = ModelTrainer(batch_size,epochs,X_train, y_train, X_test, y_test,model)
+            trainer.train()
+
+    def compute_most_frequent_words_vocabulary(self, dataset,n:int):
         """
         Creates a vocabulary of the most frequent N words in a dataset and saves it to a file
         :param dataset: dataset as a numpy array
@@ -77,12 +94,11 @@ class Controller:
 
     # def text_to_word_embeddings(self):
 
-    def text_to_bag_of_words(self, vocab,data, use_tfidf = False):
+    def text_to_bag_of_words(self, vocab,data):
         """
         Vectorize a text data into a BoW with either TF (default) or TF-IDF index
         :param vocab: vocabulary used for the BoW as a numpy array
         :param data: array of text
-        :param use_tfidf: mentions if either TF-IDF should be used
         :return:
         """
         tf_vectors = []
@@ -92,6 +108,12 @@ class Controller:
                 vector.append(entry[1].split().count(word))
             tf_vectors.append(vector)
         return np.array(tf_vectors)
+
+    def text_to_word_embeddings(self,vocab_size,data):
+        #convert glove file to word2vec format
+        glove2word2vec(GLOVE_INPUT_PATH, GLOVE_OUTPUT_PATH)
+        
+        model = KeyedVectors.load_word2vec_format(GLOVE_OUTPUT_PATH,binary=False)
 
     def create_dataset_for_similarity_models(self, data,labels,model_sim):
         all_similar_claims = []

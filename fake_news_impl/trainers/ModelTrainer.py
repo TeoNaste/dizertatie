@@ -28,6 +28,8 @@ class ModelTrainer:
         """
         Trains the keras model on the training dataset, then evaluates the model on the testing dataset
         """
+        print(self.model.summary())
+
         #Train the keras model
         history = self.model.fit(self.dataset,self.labels, epochs=self.epochs, batch_size=self.batch_size, validation_data=(self.dataset_test,self.labels_test))
 
