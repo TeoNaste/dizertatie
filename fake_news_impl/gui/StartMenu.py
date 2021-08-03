@@ -1,13 +1,13 @@
 import tkinter as tk
+import asyncio
 
-from controllers.Controller import Controller
+from controllers.TrainerController import TrainerController
 from gui.TrainingPage import TrainingPage
-from utils.Utils import Utils
 
 
 class StarMenu:
 
-    def __init__(self, controller: Controller):
+    def __init__(self, controller: TrainerController):
         self.controller = controller
 
     def start(self):

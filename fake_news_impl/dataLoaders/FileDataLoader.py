@@ -1,6 +1,8 @@
 import csv
-import numpy as np
 
+import numpy as np
+from gensim.scripts.glove2word2vec import glove2word2vec
+from gensim.models import  KeyedVectors
 from preprocessing.DataPreprocessor import DataPreprocessor
 
 KNOWLEDGE_BASE_PATH = 'knowledge_base.csv'
@@ -97,6 +99,23 @@ class FileDataLoader:
         with open(self.folder_path+filename,'w',newline='') as file:
             file.writelines(array)
 
+    def load_embedding_indexes(self):
+        path = '../../glove/glove.42B.300d.txt'
+        word2vec_output_file = self.folder_path+'glove.42B.300d.word2vec'
+
+        # glove2word2vec(path,word2vec_output_file)
+
+        model = self.__load_glove_model(word2vec_output_file)
+
+        # embeddings_index = {}
+        # with open(path, 'r',encoding="utf8") as file:
+        #     for line in file:
+        #         word, coefs = line.split(maxsplit=1)
+        #         coefs = np.fromstring(coefs, "f", sep=" ")
+        #         embeddings_index[word] = coefs
+
+        return model
+
     def __shuffle_in_unison(self,claims,labels):
         rng_state = np.random.get_state()
         np.random.shuffle(claims)
@@ -104,3 +123,6 @@ class FileDataLoader:
         np.random.shuffle(labels)
 
         return claims,labels
+
+    def __load_glove_model(self, glove_file):
+        return KeyedVectors.load_word2vec_format(glove_file, binary=False)

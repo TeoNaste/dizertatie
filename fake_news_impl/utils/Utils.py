@@ -4,7 +4,8 @@ class Utils:
         self.__models = {
             '-- Choose a model to train --': 'none',
             'Multilayer Perceptron':'mlp',
-            'MLP with similarity': 'mlps'
+            'MLP with similarity': 'mlps',
+            'Long Short-Term Memory': 'lstm'
         }
         self.__activations = [
             'relu',

@@ -1,3 +1,6 @@
+from pathlib import Path
+
+from keras.engine.saving import model_from_json
 from keras.utils import plot_model
 import matplotlib.pyplot as plt
 
@@ -22,12 +25,14 @@ class ModelTrainer:
         self.dataset_test = dataset_test
         self.labels_test = labels_test
         self.model = model
-        self.__save_folder = "/savedModels/"
+        self.__save_folder = "savedModels/"
 
     def train(self):
         """
         Trains the keras model on the training dataset, then evaluates the model on the testing dataset
         """
+        print(self.model.summary())
+
         #Train the keras model
         history = self.model.fit(self.dataset,self.labels, epochs=self.epochs, batch_size=self.batch_size, validation_data=(self.dataset_test,self.labels_test))
 
@@ -36,12 +41,14 @@ class ModelTrainer:
         print("test loss, test acc: ", results)
 
         self.__plot_performance(history)
-        #TODO: save results
+
+        self.save_model()
 
     def save_model(self):
         """
         Saves a model after it's been trained
         """
+        Path(self.__save_folder + self.model.name).mkdir(parents=True, exist_ok=True)
 
         #Save model
         model_json = self.model.to_json()
@@ -56,7 +63,7 @@ class ModelTrainer:
         Reads model from file
         """
         json_file = open(self.__save_folder+model_name+'/model.json')
-        self.model = json_file.read()
+        self.model = model_from_json(json_file.read())
         json_file.close()
 
         #read weights from file
