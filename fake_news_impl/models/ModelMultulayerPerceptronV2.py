@@ -24,6 +24,8 @@ class ModelMultilayerPerceptronV2:
 
         model.add(Dense(neurons, input_dim=nr_features, activation=activation))
 
+        model.add(Dense(neurons, input_dim=nr_features, activation=activation))
+
         # Add hidden layers
         for layer in range(layers-1):
             # The input_dim argument creates the input layer with the right shape
