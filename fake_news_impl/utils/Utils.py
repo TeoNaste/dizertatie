@@ -9,7 +9,8 @@ class Utils:
         }
         self.__activations = [
             'relu',
-            'sigmoid'
+            'sigmoid',
+            'softmax'
         ]
         self.__loss = [
             'binary_crossentropy',

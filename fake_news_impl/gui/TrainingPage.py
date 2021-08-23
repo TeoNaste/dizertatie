@@ -1,15 +1,21 @@
 import tkinter as tk
 
+from controllers.ResultsController import ResultsController
 from controllers.TrainerController import TrainerController
 from utils.Utils import Utils
 
 
 class TrainingPage(tk.Toplevel):
 
-    def __init__(self, controller: TrainerController, master=None):
+    def __init__(self, controller: TrainerController, results_controller: ResultsController, master=None):
         super().__init__(master=master)
         self.controller = controller
+        self.results_controller = results_controller
         self.utils = Utils()
+        self.last_name = tk.StringVar()
+        self.last_acc = tk.StringVar()
+        self.last_loss = tk.StringVar()
+        self.last_date = tk.StringVar()
         self.start()
 
     def start(self):
@@ -18,7 +24,7 @@ class TrainingPage(tk.Toplevel):
         self.rowconfigure(0, weight=1)
 
         # create main frame
-        main_frame = tk.Frame(self, width=300)
+        main_frame = tk.Frame(self, width=600)
         main_frame.grid(column=0, row=0, sticky=tk.NSEW)
         main_frame.rowconfigure(0, weight=2)
         main_frame.rowconfigure(1, weight=1)
@@ -46,15 +52,19 @@ class TrainingPage(tk.Toplevel):
         process_btn.grid(column=1, row=1, padx=5, sticky=tk.EW)
 
         # middle frame - settings and results
-        middle_frame = tk.Frame(self, width=100, height=100)
+        middle_frame = tk.Frame(self, width=600, height=100)
         middle_frame.columnconfigure(0, weight=2)
-        middle_frame.columnconfigure(1, weight=1)
+        middle_frame.columnconfigure(1, weight=4)
         middle_frame.grid(column=0, row=1, sticky=tk.NSEW, pady=10, padx=10)
 
         middle_left_frame = tk.Frame(middle_frame)
         middle_left_frame.grid(column=0, row=1, sticky=tk.NSEW)
 
-        middle_right_frame = tk.Frame(middle_frame)
+        middle_right_frame = tk.Frame(middle_frame,width=100)
+        middle_right_frame.columnconfigure(0, weight=1)
+        middle_right_frame.columnconfigure(1, weight=1)
+        middle_right_frame.columnconfigure(2, weight=1)
+        middle_right_frame.columnconfigure(3, weight=1)
         middle_right_frame.grid(column=1, row=1, sticky=tk.NSEW)
 
         # middle left size = training parameters
@@ -92,7 +102,7 @@ class TrainingPage(tk.Toplevel):
         layers_label.grid(column=0, row=5, sticky=tk.W)
 
         layers_entry = tk.Entry(middle_left_frame)
-        layers_entry.insert(tk.END, '50')
+        layers_entry.insert(tk.END, '5')
         layers_entry.grid(column=1, row=5, sticky=tk.EW, padx=5)
 
         nerons_label = tk.Label(middle_left_frame, text="Neurons no: ")
@@ -154,13 +164,26 @@ class TrainingPage(tk.Toplevel):
         train_btn.grid(row=11, columnspan=2, padx=5, sticky=tk.EW)
 
         # middle right side - results
-        results_label = tk.Label(middle_right_frame, text="Results", font='helvetica')
-        results_label.grid(row=0, columnspan=2, sticky=tk.W + tk.NS)
+        results_label = tk.Label(middle_right_frame, text="Last result", font='helvetica')
+        results_label.grid(row=0, columnspan=4, sticky=tk.W + tk.NS)
+
+        last_name_label = tk.Entry(middle_right_frame,textvariable=self.last_name)
+        last_name_label.grid(row=1,column=0,sticky=tk.NSEW)
+
+        last_acc_label = tk.Entry(middle_right_frame,textvariable=self.last_acc)
+        last_acc_label.grid(row=1, column=1, sticky=tk.NSEW)
+
+        last_loss_label = tk.Entry(middle_right_frame,textvariable=self.last_loss)
+        last_loss_label.grid(row=1, column=2, sticky=tk.NSEW)
+
+        self.__show_last_results()
+
+        results_label = tk.Label(middle_right_frame, text="Best Results", font='helvetica')
+        results_label.grid(row=2, columnspan=4, sticky=tk.W + tk.NS)
 
         # button frame - progress
         bottom_frame = tk.Frame(self, bg="green", width=100, height=100)
         bottom_frame.grid(column=0, row=2, sticky=tk.EW + tk.S, pady=10, padx=10)
-
 
     def __preprocess_file(self, filename: str, label):
         if len(filename) > 0:
@@ -169,7 +192,6 @@ class TrainingPage(tk.Toplevel):
             self.controller.create_processed_data(filename, "processed_data.csv")
         else:
             label.config(text="No file chosen!")
-
 
     def __call_train(self,
                      model_name: str,
@@ -190,5 +212,14 @@ class TrainingPage(tk.Toplevel):
             self.controller.train_on_model(self.utils.get_model_name(model_name), filename, batch_size, epochs,
                                            feature_no, layers, learning_rate, neurons, activation, loss,
                                            embedding_size)
+            self.__show_last_results()
+            message_label.config(text='Training finished.')
         else:
             message_label.config(text='Please choose a model')
+
+    def __show_last_results(self):
+        if self.results_controller.last_ranked is not None:
+            self.last_name.set(self.results_controller.last_ranked.model)
+            self.last_acc.set(self.results_controller.last_ranked.accuracy)
+            self.last_loss.set(self.results_controller.last_ranked.loss)
+            self.last_date.set(self.results_controller.last_ranked.create_date)
