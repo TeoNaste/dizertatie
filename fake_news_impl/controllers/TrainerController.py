@@ -1,8 +1,9 @@
 import numpy as np
 import threading
 from keras_preprocessing.sequence import pad_sequences
-from keras_preprocessing.text import Tokenizer
+from keras_preprocessing.text import Tokenizer, one_hot
 
+from controllers.ResultsController import ResultsController
 from dataLoaders.FileDataLoader import FileDataLoader
 from sklearn.model_selection import train_test_split
 
@@ -10,6 +11,7 @@ from models.ModelLstm import ModelLSTM
 from models.ModelMultulayerPerceptronV2 import ModelMultilayerPerceptronV2
 from models.ModelSimilarity import ModelSimilarity
 from trainers.ModelTrainer import ModelTrainer
+from utils.SharedData import SharedData
 
 PREPROCESSED_PATH = 'processed_data.csv'
 GLOVE_INPUT_PATH = '../../glove/glove.42B.300d.txt'
@@ -18,9 +20,10 @@ GLOVE_OUTPUT_PATH = '../../glove/glove.42B.300d.txt.word2vec'
 
 class TrainerController:
 
-    def __init__(self, data_loader: FileDataLoader):
+    def __init__(self, data_loader: FileDataLoader, shared_data: SharedData, results_controller: ResultsController):
         self.data_loader = data_loader
-        self.vocab = []
+        self.shared_data = shared_data
+        self.results_controller = results_controller
         self.embeddings_index = None
         self.embedding_thread = threading.Thread(target=self.prepare_training)
         # self.embedding_thread.start()
@@ -31,26 +34,36 @@ class TrainerController:
         :param filename: file of raw data
         :param filename_processed: file to save the processed data
         """
-        dataset, labels = self.data_loader.load_and_process_dataset(filename)
+        self.shared_data.dateset, labels = self.data_loader.load_and_process_dataset(filename)
 
-        self.data_loader.save_dataset(dataset,labels,filename_processed,False)
+        self.data_loader.save_dataset(self.shared_data.dateset,labels,filename_processed,False)
 
     def train_on_model(self,model_name:str, preprocessed_filename:str,batch_size:int,epochs:int,vocab_size:int,layers:int,learning_rate:float,neurons:int,activation:str,loss:str, embedding_size:int = 0):
         #load preprocessed data
         dataset, labels = self.data_loader.load_dataset(preprocessed_filename)
-        self.vocab = self.compute_most_frequent_words_vocabulary(dataset,vocab_size)
+        self.shared_data.vocab = self.compute_most_frequent_words_vocabulary(dataset,vocab_size)
 
         #split into 80/20%
         X_train, X_test, y_train, y_test = self.split_data(dataset,labels)
 
         if model_name == 'mlp':
-            # vectorize
-            X_train = self.text_to_bag_of_words(self.vocab, X_train)
-            X_test = self.text_to_bag_of_words(self.vocab, X_test)
+            if embedding_size == 0:
+                # vectorize
+                X_train = self.text_to_bag_of_words(self.shared_data.vocab, X_train)
+                X_test = self.text_to_bag_of_words(self.shared_data.vocab, X_test)
 
-            model = ModelMultilayerPerceptronV2(model_name).create_model(X_train.shape[1],activation,loss,layers,learning_rate,neurons)
+                model = ModelMultilayerPerceptronV2(model_name).create_model(X_train.shape[1],activation,loss,layers,learning_rate,neurons)
+            else:
+                indexed_data, embedding_matrix = self.text_to_word_embeddings(self.shared_data.vocab, embedding_size,
+                                                                              dataset)
+                # split into 80/20%
+                X_train, X_test, y_train, y_test = self.split_data(indexed_data, labels)
+
+                model = ModelMultilayerPerceptronV2(model_name).create_model(X_train.shape[1], activation, loss, layers,
+                                                                             learning_rate, neurons,embedding_size,len(self.shared_data.vocab))
             trainer = ModelTrainer(batch_size,epochs, X_train, y_train, X_test, y_test,model)
-            trainer.train()
+            history = trainer.train()
+            self.results_controller.rank_model(trainer.model,history)
 
         if model_name == 'mlps':
             model_sim = ModelSimilarity(self.data_loader).create_model(2)
@@ -61,13 +74,14 @@ class TrainerController:
 
             model = ModelMultilayerPerceptronV2(model_name).create_model(X_train.shape[1], activation, loss,layers,learning_rate,neurons)
             trainer = ModelTrainer(batch_size, epochs, X_train, y_train, X_test, y_test, model)
-            trainer.train()
+            history = trainer.train()
+            self.results_controller.rank_model(trainer.model,history)
 
         if model_name == 'lstm':
             if embedding_size == 0:
                 # vectorize
-                X_train = self.text_to_bag_of_words(self.vocab, X_train)
-                X_test = self.text_to_bag_of_words(self.vocab, X_test)
+                X_train = self.text_to_bag_of_words(self.shared_data.vocab, X_train)
+                X_test = self.text_to_bag_of_words(self.shared_data.vocab, X_test)
 
                 # reshape as 3d
                 X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
@@ -75,11 +89,18 @@ class TrainerController:
 
                 model = ModelLSTM(model_name).create_model(X_train.shape[1],activation,loss,layers,learning_rate,neurons)
             else:
-                indexed_data, embedding_matrix = self.text_to_word_embeddings(self.vocab,embedding_size,dataset)
+                indexed_data, embedding_matrix = self.text_to_word_embeddings(self.shared_data.vocab,embedding_size,dataset)
+
+                # split into 80/20%
+                X_train, X_test, y_train, y_test = self.split_data(indexed_data, labels)
+
                 model = ModelLSTM(model_name).create_model(X_train.shape[1], activation, loss, layers, learning_rate,
-                                                           neurons,embedding_size,vocab_size, embedding_matrix)
+                                                           neurons,embedding_size,vocab_size)
             trainer = ModelTrainer(batch_size,epochs,X_train, y_train, X_test, y_test,model)
-            trainer.train()
+            history = trainer.train()
+            self.results_controller.rank_model(trainer.model,history)
+
+        return self.results_controller.last_ranked
 
     def compute_most_frequent_words_vocabulary(self, dataset,n:int):
         """
@@ -127,17 +148,18 @@ class TrainerController:
         :param data: dataset
         :return: padded and indexed data, embedding_matrix
         """
-        indexed_data,word_index = self.text_to_indexes(len(vocab),data)
-        indexed_data = self.__add_padding(indexed_data, max(len(i) for i in vocab))
+        text_data = [item[1] for item in data]
+        indexed_data,word_index = self.text_to_indexes(len(vocab),text_data)
+        indexed_data = self.__add_padding(indexed_data, embedding_dim)
 
-        embedding_matrix = np.zeros((len(vocab) + 1, embedding_dim))
+        embedding_matrix = np.zeros((len(vocab), embedding_dim))
 
         # self.embedding_thread.join()
 
-        for word, i in word_index.items():
-            embedding_vector = self.embeddings_index.get_vector(word)
-            if embedding_vector is not None:
-                embedding_matrix[i] = embedding_vector
+        # for word, i in word_index.items():
+        #     embedding_vector = self.embeddings_index.get_vector(word)
+        #     if embedding_vector is not None:
+        #         embedding_matrix[i] = embedding_vector
 
         # for word, i in word_index.items():
         #     embedding_vector = self.embeddinsgs_index.get(word)
@@ -146,8 +168,7 @@ class TrainerController:
 
         return indexed_data, embedding_matrix
 
-    def text_to_indexes(self, vocab_size, data):
-        text_data = [item[1] for item in data]
+    def text_to_indexes(self, vocab_size, text_data):
         tokenizer = Tokenizer(num_words=vocab_size)
         tokenizer.fit_on_texts(text_data)
 
@@ -166,8 +187,8 @@ class TrainerController:
             all_cosine_sim.append(sim_values)
 
         #vectorize text data
-        vect_data = self.text_to_bag_of_words(self.vocab, np.array(data))
-        vect_similar = self.text_to_bag_of_words(self.vocab, all_similar_claims)
+        vect_data = self.text_to_bag_of_words(self.shared_data.vocab, np.array(data))
+        vect_similar = self.text_to_bag_of_words(self.shared_data.vocab, all_similar_claims)
 
         #concatenate vectros of claim, cosine similarity between them and label of the most similar claim
         result1 = np.concatenate((vect_data,vect_similar),axis=1)

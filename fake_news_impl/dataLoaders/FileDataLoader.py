@@ -1,12 +1,12 @@
 import csv
 
 import numpy as np
-from gensim.scripts.glove2word2vec import glove2word2vec
 from gensim.models import  KeyedVectors
+from gensim.scripts.glove2word2vec import glove2word2vec
+
 from preprocessing.DataPreprocessor import DataPreprocessor
 
 KNOWLEDGE_BASE_PATH = 'knowledge_base.csv'
-
 
 class FileDataLoader:
 
@@ -100,19 +100,11 @@ class FileDataLoader:
             file.writelines(array)
 
     def load_embedding_indexes(self):
-        path = '../../glove/glove.42B.300d.txt'
         word2vec_output_file = self.folder_path+'glove.42B.300d.word2vec'
 
-        # glove2word2vec(path,word2vec_output_file)
+        # glove2word2vec(self.folder_path+'glove.6B.50d.txt', word2vec_output_file)
 
         model = self.__load_glove_model(word2vec_output_file)
-
-        # embeddings_index = {}
-        # with open(path, 'r',encoding="utf8") as file:
-        #     for line in file:
-        #         word, coefs = line.split(maxsplit=1)
-        #         coefs = np.fromstring(coefs, "f", sep=" ")
-        #         embeddings_index[word] = coefs
 
         return model
 

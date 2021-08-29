@@ -1,6 +1,6 @@
 import tkinter as tk
-import asyncio
 
+from controllers.ResultsController import ResultsController
 from controllers.TrainerController import TrainerController
 from gui.SearchPage import SearchPage
 from gui.TrainingPage import TrainingPage
@@ -8,8 +8,9 @@ from gui.TrainingPage import TrainingPage
 
 class StarMenu:
 
-    def __init__(self, controller: TrainerController):
+    def __init__(self, controller: TrainerController, results_controller: ResultsController):
         self.controller = controller
+        self.results_controller = results_controller
 
     def start(self):
         window = tk.Tk()
@@ -39,7 +40,7 @@ class StarMenu:
         window.mainloop()
 
     def open_trainig_page(self,window):
-        training_page = TrainingPage(self.controller,window)
+        training_page = TrainingPage(self.controller,self.results_controller, window)
         training_page.start()
 
     def open_search_page(self,window):

@@ -37,9 +37,13 @@ class SearchPage(tk.Toplevel):
         search_entry.insert(tk.END, 'Search for a claim...')
         search_entry.grid(column=0,row=1,padx=30,pady=(5,10),sticky=tk.EW)
 
+        search_button = tk.Button(top_frame, text="Search")
+        search_button.bind("<Button>", lambda e: print("Search"))
+        search_button.grid(column=0, row=2, sticky=tk.W, padx=10, pady=5)
+
         options_button = tk.Button(top_frame, text="Show options")
         options_button.bind("<Button>", lambda e: print("Show options"))
-        options_button.grid(column=0,row=2,sticky=tk.W,padx=10,pady=5)
+        options_button.grid(column=0,row=2,sticky=tk.EW,padx=10,pady=5)
 
         #middle frame - options frame
         options_frame = tk.Frame(self, bg="blue",height=60)
