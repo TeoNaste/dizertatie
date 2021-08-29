@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 
 from keras.engine.saving import model_from_json
@@ -31,7 +32,8 @@ class ModelTrainer:
         """
         Trains the keras model on the training dataset, then evaluates the model on the testing dataset
         """
-        print(self.model.summary())
+        time = datetime.now()
+        self.model.name = self.model.name + '-' + time.strftime("%d-%m-%Y %H%M")
 
         #Train the keras model
         history = self.model.fit(self.dataset,self.labels, epochs=self.epochs, batch_size=self.batch_size, validation_data=(self.dataset_test,self.labels_test))
@@ -43,6 +45,10 @@ class ModelTrainer:
         self.__plot_performance(history)
 
         self.save_model()
+
+        self.summarize_model(True)
+
+        return history
 
     def save_model(self):
         """
@@ -102,4 +108,4 @@ class ModelTrainer:
 
         print(self.model.summary())
         if graph:
-            plot_model(self.model, to_file=self.__save_folder+self.model.name+'/plot.png', show_shapes= True, show_layer_names=True)
+            plot_model(self.model, to_file=self.__save_folder+self.model.name+'/structure.png', show_shapes= True, show_layer_names=True)
