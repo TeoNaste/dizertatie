@@ -7,7 +7,6 @@ from gensim.scripts.glove2word2vec import glove2word2vec
 from preprocessing.DataPreprocessor import DataPreprocessor
 
 KNOWLEDGE_BASE_PATH = 'knowledge_base.csv'
-RESULTS_PATH = 'results.txt'
 
 class FileDataLoader:
 
@@ -108,10 +107,6 @@ class FileDataLoader:
         model = self.__load_glove_model(word2vec_output_file)
 
         return model
-
-    def load_results(self):
-        with open(self.folder_path+RESULTS_PATH,'r') as file:
-            reader = csv.reader(file)
 
     def __shuffle_in_unison(self,claims,labels):
         rng_state = np.random.get_state()
